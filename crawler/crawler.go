@@ -23,7 +23,7 @@ func fetch(ctx context.Context, url string) (string, error) {
 	logger.Debugf("fetch url:%+v", url)
 
 	// 页面有并发限制，随机暂停
-	time.Sleep(time.Millisecond * time.Duration(rand.Int31n(100)+40))
+	time.Sleep(time.Millisecond * time.Duration(rand.Int31n(100)+60))
 
 	cli := &http.Client{}
 
@@ -56,11 +56,12 @@ func fetch(ctx context.Context, url string) (string, error) {
 	return string(body), nil
 }
 
-type regionPage struct {
+type RegionPage struct {
+	PCode string `json:"p_code"`
 	Code  string `json:"code"`
 	Name  string `json:"name"`
 	Url   string `json:"url"`
-	Level int    `json:"level"`
+	Level Level  `json:"level"`
 }
 
 type Level int
@@ -73,7 +74,7 @@ const (
 	LevelVillage
 )
 
-func FetchProvincePages(ctx context.Context, url string) []regionPage {
+func FetchProvincePages(ctx context.Context, url string) []RegionPage {
 	logger := zaplog.FromContext(ctx)
 	content, err := fetch(ctx, url)
 
@@ -85,7 +86,7 @@ func FetchProvincePages(ctx context.Context, url string) []regionPage {
 
 	items := rg.FindAllStringSubmatch(content, -1)
 
-	var list []regionPage
+	var list []RegionPage
 
 	for _, item := range items {
 
@@ -94,22 +95,36 @@ func FetchProvincePages(ctx context.Context, url string) []regionPage {
 			continue
 		}
 
-		list = append(list, regionPage{
+		list = append(list, RegionPage{
 			Code:  strings.Replace(item[1], ".html", "", -1) + strings.Repeat("0", 10),
 			Url:   BaseUrl + item[1],
 			Name:  item[2],
-			Level: 1,
+			Level: LevelProvince,
+			PCode: "0",
 		})
 	}
 	return list
 }
 
-func FetchPages(ctx context.Context, url string, level Level) []regionPage {
+func FetchPages(ctx context.Context, url string, level Level, pCode string) []RegionPage {
 	if url == BaseUrl {
 		return nil
 	}
 	logger := zaplog.FromContext(ctx)
+
 	content, err := fetch(ctx, url)
+
+	if err != nil { // 进重试
+		for i := 3; i > 0; i-- {
+			time.Sleep(time.Second * 2)
+			content, err = fetch(ctx, url)
+			if err != nil {
+				continue
+			} else {
+				break
+			}
+		}
+	}
 
 	if err != nil {
 		logger.Errorf("FetchCityPages error:%+v", err)
@@ -121,7 +136,7 @@ func FetchPages(ctx context.Context, url string, level Level) []regionPage {
 	rg := regexp.MustCompile("(\\d+/\\d+\\.html)*[\">td<]*(\\d{12})[<A-z/> =\\d.\"]*([\u4e00-\u9fa5]{0,30})")
 	items := rg.FindAllStringSubmatch(content, -1)
 
-	var list []regionPage
+	var list []RegionPage
 
 	for _, item := range items {
 
@@ -137,11 +152,12 @@ func FetchPages(ctx context.Context, url string, level Level) []regionPage {
 				url = BaseUrl + item[2][:2] + "/" + item[2][2:4] + "/" + item[1]
 			}
 		}
-		list = append(list, regionPage{
+		list = append(list, RegionPage{
+			PCode: pCode,
 			Code:  item[2],
 			Url:   url,
 			Name:  item[3],
-			Level: int(level),
+			Level: level,
 		})
 	}
 	return list
