@@ -30,9 +30,9 @@ CREATE TABLE `regions` (
 > 预览部分数据
 
 ```bash
+bunzip2 2023.sql.tar.bz2
+tar -zxvf 2023.sql.tar
 less 2023.sql
-
-
 ```
 
 ## Run
