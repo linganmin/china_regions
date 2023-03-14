@@ -59,3 +59,56 @@ func TestFetchProvincePages(t *testing.T) {
 		})
 	}
 }
+
+func TestFetchPages(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		url   string
+		level Level
+		pCode string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []RegionPage
+	}{
+		{name: testing.CoverMode(), args: args{
+			ctx:   context.Background(),
+			url:   "http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2022/44/4419.html",
+			level: 3,
+			pCode: "441900000000",
+		}, want: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FetchPages(tt.args.ctx, tt.args.url, tt.args.level, tt.args.pCode); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FetchPages() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getLevelByCode(t *testing.T) {
+	type args struct {
+		code string
+	}
+	tests := []struct {
+		name string
+		args args
+		want Level
+	}{
+		{name: testing.CoverMode(), args: args{code: "130102001001"}, want: LevelVillage},
+		{name: testing.CoverMode(), args: args{code: "130102001000"}, want: LevelTown},
+		{name: testing.CoverMode(), args: args{code: "130101000000"}, want: LevelCounty},
+		{name: testing.CoverMode(), args: args{code: "130100000000"}, want: LevelCity},
+		{name: testing.CoverMode(), args: args{code: "441900000000"}, want: LevelCity},
+		{name: testing.CoverMode(), args: args{code: "441900003000"}, want: LevelTown},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getLevelByCode(tt.args.code); got != tt.want {
+				t.Errorf("getLevelByCode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

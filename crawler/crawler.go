@@ -150,15 +150,41 @@ func FetchPages(ctx context.Context, url string, level Level, pCode string) []Re
 				url = BaseUrl + item[2][:2] + "/" + item[1]
 			case LevelTown:
 				url = BaseUrl + item[2][:2] + "/" + item[2][2:4] + "/" + item[1]
+
 			}
 		}
+
 		list = append(list, RegionPage{
 			PCode: pCode,
 			Code:  item[2],
 			Url:   url,
 			Name:  item[3],
-			Level: level,
+			Level: getLevelByCode(item[2]),
 		})
 	}
 	return list
+}
+
+func getLevelByCode(code string) Level {
+
+	if len(code) != 12 {
+		return Level(0)
+	}
+
+	//fmt.Println(code[len(code)-3:], code[len(code)-6:len(code)-3], code[len(code)-8:len(code)-6], code[len(code)-10:len(code)-8], code[len(code)-12:len(code)-10])
+	if code[len(code)-3:] != "000" {
+		return LevelVillage
+	}
+
+	if code[len(code)-6:len(code)-3] != "000" {
+		return LevelTown
+	}
+	if code[len(code)-8:len(code)-6] != "00" {
+		return LevelCounty
+	}
+	if code[len(code)-10:len(code)-8] != "00" {
+		return LevelCity
+	}
+
+	return LevelProvince
 }
