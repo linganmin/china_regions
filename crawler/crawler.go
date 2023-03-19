@@ -16,7 +16,7 @@ import (
 
 const ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 
-const BaseUrl = "http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2022/"
+const BaseUrl = "http://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2022/"
 
 func fetch(ctx context.Context, url string) (string, error) {
 	logger := zaplog.FromContext(ctx)
@@ -133,7 +133,8 @@ func FetchPages(ctx context.Context, url string, level Level, pCode string) []Re
 
 	content = strings.Replace(content, "\r\n", "", -1)
 
-	rg := regexp.MustCompile("(\\d+/\\d+\\.html)*[\">td<]*(\\d{12})[<A-z/> =\\d.\"]*([\u4e00-\u9fa5]{0,30})")
+	//rg := regexp.MustCompile("(\\d+/\\d+\\.html)*[\">td<]*(\\d{12})[<A-z/> =\\d.\"]*([\u2e80-\ufffdh]{0,30})")
+	rg := regexp.MustCompile("(\\d+/\\d+\\.html)*[\">td<]*(\\d{12})[<A-z/> =\\d.\"]*([⺀-龥0-9（）()〇\uE170𡐓𡌶]{0,30})")
 	items := rg.FindAllStringSubmatch(content, -1)
 
 	var list []RegionPage

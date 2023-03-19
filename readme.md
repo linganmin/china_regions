@@ -2,7 +2,7 @@
 
 ## 数据源
 
-[中华人民共和国国家统计局](http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2022/index.html)
+[中华人民共和国国家统计局](http://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2022/index.html)
 
 
 ## 数据文件
